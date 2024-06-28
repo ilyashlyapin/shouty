@@ -1,5 +1,6 @@
 const { Given, When, Then, Before } = require('@cucumber/cucumber')
 const { assertThat, contains, is, not } = require('hamjest')
+const assert = require('assert')
 
 const { Person, Network } = require('../../src/shouty')
 
@@ -19,7 +20,7 @@ Given('a person named {word}', function (name) {
 })
 
 Given('people are located at', function (dataTable) {
-  dataTable.hashes().map((person) => {
+  dataTable.transpose().hashes().map((person) => {
     this.people[person.name] = new Person(this.network, person.location)
   })
 })
@@ -29,6 +30,11 @@ When('Sean shouts', function () {
 })
 
 When('Sean shouts {string}', function (message) {
+  this.people['Sean'].shout(message)
+  this.messageFromSean = message
+})
+
+When('Sean shouts the following message', function (message) {
   this.people['Sean'].shout(message)
   this.messageFromSean = message
 })
@@ -45,6 +51,12 @@ Then('Larry should not hear Sean\'s message', function () {
   assertThat(this.people['Larry'].messagesHeard(), not(contains(this.messageFromSean)))
 })
 
-Then('Larry should not hear a shout', function () {
-  assertThat(this.people['Larry'].messagesHeard().length, is(0))
+Then('{word} should not hear a shout', function (name) {
+  assertThat(this.people[name].messagesHeard().length, is(0))
+})
+
+Then('Lucy hears the following messages:', function (expectedMessages) {
+  let actualMessages = this.people['Lucy'].messagesHeard().map(message => [message])
+
+  assert.deepEqual(actualMessages, expectedMessages.raw())
 })
