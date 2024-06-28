@@ -1,43 +1,45 @@
 class Person {
-    constructor(network) {
-      this.messages = []
-      this.network      = network
-  
-      this.network.subscribe(this)
-    }
-    
-    moveTo(distance) {
-      
-    }
-  
-    shout(message) {
-      this.network.broadcast(message)
-    }
-  
-    hear(message) {
-      this.messages.push(message)
-    }
-  
-    messagesHeard() {
-      return this.messages
-    }
+  constructor(network, location) {
+    this.messages = []
+    this.network  = network
+    this.location = location
+
+
+    this.network.subscribe(this)
   }
-  
-  class Network {
-    constructor() {
-      this.listeners = []
-    }
-  
-    subscribe(person) {
-      this.listeners.push(person)
-    }
-  
-    broadcast(message) {
-      this.listeners.forEach(listener => { listener.hear(message) })
-    }
+
+  shout(message) {
+    this.network.broadcast(message, this.location)
   }
-  
-  module.exports = {
-    Person  : Person,
-    Network : Network
+
+  hear(message) {
+    this.messages.push(message)
   }
+
+  messagesHeard() {
+    return this.messages
+  }
+}
+
+class Network {
+  constructor(range) {
+    this.listeners = []
+    this.range     = range
+  }
+
+  subscribe(person) {
+    this.listeners.push(person)
+  }
+
+  broadcast(message, shouter_location) {
+    this.listeners.forEach(listener => {
+      if( Math.abs(listener.location - shouter_location) <= this.range)
+        listener.hear(message)
+    })
+  }
+}
+
+module.exports = {
+  Person  : Person,
+  Network : Network
+}
