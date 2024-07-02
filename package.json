@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "cucumber-js"
+    "test": "mocha test && cucumber-js -f @cucumber/pretty-formatter"
   },
   "keywords": [],
   "author": "",
@@ -11,6 +11,11 @@
   "description": "",
   "devDependencies": {
     "@cucumber/cucumber": "^10.8.0",
+    "@cucumber/pretty-formatter": "latest",
     "hamjest": "^4.1.0"
+  },
+  "dependencies": {
+    "mocha": "^10.5.2",
+    "sinon": "^18.0.0"
   }
 }
