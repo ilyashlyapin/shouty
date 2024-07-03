@@ -1,3 +1,5 @@
+@SHOUTY-11
+
 Feature: Hear shout
 
   Shouty allows users to "hear" other users "shouts" as long as they are close enough to each other.
@@ -20,6 +22,7 @@ Feature: Hear shout
       When Sean shouts
       Then Lucy should hear a shout
 
+    @focus
     Scenario: Listener is out of range
       Given the range is 100
       And people are located at
@@ -29,7 +32,7 @@ Feature: Hear shout
       Then Larry should not hear a shout
 
   Rule: Listener should be able to hear multiple shouts
-
+    @slow
     Scenario: Two shouts
       Given a person named Sean
       And a person named Lucy
@@ -40,7 +43,8 @@ Feature: Hear shout
         | Free toast!  |
 
   Rule:  Maximum length of message is 180 characters
-
+    
+    @slow
     Scenario: Message is too long
       Given a person named Sean
       And a person named Lucy
