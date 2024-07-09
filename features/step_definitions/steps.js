@@ -43,18 +43,42 @@ When("Sean shouts", function () {
   this.people["Sean"].shout("Hello, world");
 });
 
-When("Sean shouts a message containing the word {string}", function (word) {
-  const message = `A message containing the word ${word}`;
-  this.people["Sean"].shout(message);
-  if (!this.messagesShoutedBy["Sean"]) this.messagesShoutedBy["Sean"] = [];
-  this.messagesShoutedBy["Sean"].push(message);
-});
+When(
+  "Sean shouts {int} messages containing the word {string}",
+  function (count, word) {
+    for (let i = 0; i < count; i++) {
+      const message = `A message containing the word ${word}`;
+      this.people["Sean"].shout(message);
+      if (!this.messagesShoutedBy["Sean"]) this.messagesShoutedBy["Sean"] = [];
+      this.messagesShoutedBy["Sean"].push(message);
+    }
+  }
+);
 
 When("Sean shouts a message", function () {
   const message = `A message from Sean`;
   this.people["Sean"].shout(message);
   if (!this.messagesShoutedBy["Sean"]) this.messagesShoutedBy["Sean"] = [];
   this.messagesShoutedBy["Sean"].push(message);
+});
+
+When("Sean shouts a long message", function () {
+  const message = [`A message from Sean`, "that spans multiple lines"].join(
+    "\n"
+  );
+  this.people["Sean"].shout(message);
+  if (!this.messagesShoutedBy["Sean"]) this.messagesShoutedBy["Sean"] = [];
+  this.messagesShoutedBy["Sean"].push(message);
+});
+
+When("Sean shouts {int} over-long messages", function (count) {
+  for (let i = 0; i < count; i++) {
+    const baseMessage = "A message from Sean that is 181 characters long ";
+    const message = baseMessage + "x".repeat(181 - baseMessage.length);
+    this.people["Sean"].shout(message);
+    if (!this.messagesShoutedBy["Sean"]) this.messagesShoutedBy["Sean"] = [];
+    this.messagesShoutedBy["Sean"].push(message);
+  }
 });
 
 When("Sean shouts {string}", function (message) {
