@@ -1,4 +1,5 @@
 const assert = require("assert");
+const { assertThat, equalTo } = require("hamjest");
 const sinon = require("sinon");
 const { Person, Network } = require("../src/shouty");
 
@@ -70,5 +71,55 @@ describe("Network", function () {
     network.range = 5;
     network.broadcast(message, sean);
     assert.deepEqual(laura.messagesHeard(), [message]);
+  });
+
+  context("credits", () => {
+    it("deducts 2 credits for a shout over 180 characters", () => {
+      const longMessage = "x".repeat(181);
+
+      const sean = new Person("Sean", network, 0);
+      const laura = new Person("Laura", network, 10);
+
+      network.subscribe(laura);
+      network.broadcast(longMessage, sean);
+
+      assertThat(sean.credits, equalTo(-2));
+    });
+
+    it("deducts 5 credits for mentioning the word 'buy'", () => {
+      const message = "Come buy these awesome croissants";
+
+      const sean = new Person("Sean", network, 0, 100);
+      const laura = new Person("Laura", network, 10);
+
+      network.subscribe(laura);
+      network.broadcast(message, sean);
+
+      assertThat(sean.credits, equalTo(95));
+    });
+
+    it("deducts 5 credits for mentioning the word 'Buy'", () => {
+      const message = "Come Buy these awesome croissants";
+
+      const sean = new Person("Sean", network, 0, 100);
+      const laura = new Person("Laura", network, 10);
+
+      network.subscribe(laura);
+      network.broadcast(message, sean);
+
+      assertThat(sean.credits, equalTo(95));
+    });
+
+    it("deducts 5 credits for mentioning the word 'buy' several times", () => {
+      const message = "Come buy buy buy these awesome croissants";
+
+      const sean = new Person("Sean", network, 0, 100);
+      const laura = new Person("Laura", network, 10);
+
+      network.subscribe(laura);
+      network.broadcast(message, sean);
+
+      assertThat(sean.credits, equalTo(95));
+    });
   });
 });
