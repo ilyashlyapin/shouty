@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test && cucumber-js -f @cucumber/pretty-formatter"
+    "test": "mocha test && cucumber-js -f @cucumber/pretty-formatter --tags 'not @todo'"
   },
   "keywords": [],
   "author": "",

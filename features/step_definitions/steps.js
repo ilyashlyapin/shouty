@@ -1,133 +1,79 @@
 const { Given, When, Then, Before } = require("@cucumber/cucumber");
-const {
-  assertThat,
-  contains,
-  is,
-  not,
-  containsInAnyOrder,
-} = require("hamjest");
-const assert = require("assert");
+const { assertThat, is, equalTo } = require("hamjest");
 
-const { Person, Network } = require("../../src/shouty");
+const { Network } = require("../../src/shouty");
 
-const default_range = 100;
-
-Before(function () {
-  this.people = {};
-  this.messagesShoutedBy = {};
-  this.network = new Network(default_range);
-});
+const DEFAULT_RANGE = 100;
 
 Given("the range is {int}", function (range) {
-  this.network = new Network(range);
+  this.network.range = range;
 });
 
-Given("a person named {word}", function (name) {
-  this.people[name] = new Person(this.network, 0);
+Given("{person} is located at {int}", function (person, location) {
+  person.moveTo(location);
 });
 
-Given("people are located at", function (dataTable) {
-  dataTable
-    .transpose()
-    .hashes()
-    .map((person) => {
-      this.people[person.name] = new Person(this.network, person.location);
-    });
+Given("{person} has bought {int} credits", function (person, credits) {
+  person.credits = credits;
 });
 
-Given("Sean has bought {int} credits", function (credits) {
-  this.people["Sean"].credits = credits;
-});
-
-When("Sean shouts", function () {
-  this.people["Sean"].shout("Hello, world");
+When("{person} shouts", function (shouter) {
+  const message = "Hello, world";
+  this.shout({ from: shouter, message });
 });
 
 When(
-  "Sean shouts {int} messages containing the word {string}",
-  function (count, word) {
+  "{person} shouts {int} messages containing the word {string}",
+  function (shouter, count, word) {
     for (let i = 0; i < count; i++) {
       const message = `A message containing the word ${word}`;
-      this.people["Sean"].shout(message);
-      if (!this.messagesShoutedBy["Sean"]) this.messagesShoutedBy["Sean"] = [];
-      this.messagesShoutedBy["Sean"].push(message);
+      this.shout({ from: shouter, message });
     }
   }
 );
 
-When("Sean shouts a message", function () {
-  const message = `A message from Sean`;
-  this.people["Sean"].shout(message);
-  if (!this.messagesShoutedBy["Sean"]) this.messagesShoutedBy["Sean"] = [];
-  this.messagesShoutedBy["Sean"].push(message);
-});
-
-When("Sean shouts a long message", function () {
-  const message = [`A message from Sean`, "that spans multiple lines"].join(
-    "\n"
-  );
-  this.people["Sean"].shout(message);
-  if (!this.messagesShoutedBy["Sean"]) this.messagesShoutedBy["Sean"] = [];
-  this.messagesShoutedBy["Sean"].push(message);
-});
-
-When("Sean shouts {int} over-long messages", function (count) {
+When("{person} shouts {int} over-long messages", function (shouter, count) {
   for (let i = 0; i < count; i++) {
-    const baseMessage = "A message from Sean that is 181 characters long ";
+    const baseMessage = `A message from ${shouter.name} that is 181 characters long `;
     const message = baseMessage + "x".repeat(181 - baseMessage.length);
-    this.people["Sean"].shout(message);
-    if (!this.messagesShoutedBy["Sean"]) this.messagesShoutedBy["Sean"] = [];
-    this.messagesShoutedBy["Sean"].push(message);
+    this.shout({ from: shouter, message });
   }
 });
 
-When("Sean shouts {string}", function (message) {
-  this.people["Sean"].shout(message);
-  if (!this.messagesShoutedBy["Sean"]) this.messagesShoutedBy["Sean"] = [];
-  this.messagesShoutedBy["Sean"].push(message);
+When("{person} shouts {string}", function (shouter, message) {
+  this.shout({ from: shouter, message });
 });
 
-When("Sean shouts the following message", function (message) {
-  this.people["Sean"].shout(message);
-  if (!this.messagesShoutedBy["Sean"]) this.messagesShoutedBy["Sean"] = [];
-  this.messagesShoutedBy["Sean"].push(message);
+When("{person} shouts the following message", function (shouter, message) {
+  this.shout({ from: shouter, message });
 });
 
-Then("Lucy should hear Sean's message", function () {
-  assertThat(this.messagesShoutedBy["Sean"].length, is(1));
-  const message = this.messagesShoutedBy["Sean"][0];
-  assertThat(this.people["Lucy"].messagesHeard(), contains(message));
+Then("{person} should not hear a shout", function (listener) {
+  assertThat(listener.messagesHeard().length, is(0));
 });
 
-Then("Lucy should hear a shout", function () {
-  assertThat(this.people["Lucy"].messagesHeard().length, is(1));
-});
+Then(
+  "{person} hears the following messages:",
+  function (listener, expectedMessages) {
+    let actualMessages = listener.messagesHeard().map((message) => [message]);
+    assertThat(actualMessages, equalTo(expectedMessages.raw()));
+  }
+);
 
-Then("Larry should not hear Sean's message", function () {
-  assertThat(this.messagesShoutedBy["Sean"].length, is(1));
-  const message = this.messagesShoutedBy["Sean"][0];
-  assertThat(this.people["Larry"].messagesHeard(), not(contains(message)));
-});
-
-Then("{word} should not hear a shout", function (name) {
-  assertThat(this.people[name].messagesHeard().length, is(0));
-});
-
-Then("Lucy hears the following messages:", function (expectedMessages) {
-  let actualMessages = this.people["Lucy"]
-    .messagesHeard()
-    .map((message) => [message]);
-
-  assert.deepEqual(actualMessages, expectedMessages.raw());
-});
-
-Then("Lucy hears all Sean's messages", function () {
-  assert.deepEqual(
-    this.people["Lucy"].messagesHeard(),
-    this.messagesShoutedBy["Sean"]
+Then("{person} hears all {person}'s messages", function (listener, shouter) {
+  assertThat(
+    listener.messagesHeard(),
+    equalTo(this.messagesShoutedBy[shouter.name])
   );
 });
 
-Then("Sean should have {int} credits", function (expectedCredits) {
-  assertThat(this.people["Sean"].credits, is(expectedCredits));
+Then("{person} should hear {person}'s message", function (listener, shouter) {
+  assertThat(
+    listener.messagesHeard()[0],
+    equalTo(this.messagesShoutedBy[shouter.name][0])
+  );
+});
+
+Then("{person} should have {int} credits", function (person, expectedCredits) {
+  assertThat(person.credits, is(expectedCredits));
 });
